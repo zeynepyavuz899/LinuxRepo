@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  drupal:
+    image: bitnami/drupal:latest
+    ports:
+      - 8080:8080
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_HOST=db
+      - MARIADB_PORT_NUMBER=3306
+    depends_on:
+      - db
+    volumes:
+      - drupal_data:/bitnami/drupal
+
+  db:
+    image: bitnami/mariadb:latest
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_DATABASE=final
+      - MARIADB_USER=YAM428
+      - MARIADB_PASSWORD=30718052
+    volumes:
+      - db_data:/bitnami/mariadb
+
+  webserver:
+    image: nginx
+    ports:
+      - 80:80
+    volumes:
+      - drupal_data:/usr/share/nginx/html
+    depends_on:
+      - drupal
+
+  certbot:
+    image: certbot
+    volumes:
+      - drupal_data:/usr/share/nginx/html
+    command: certonly --webroot --webroot-path=/usr/share/nginx/html --email your-email@example.com --agree-tos --no-eff-email --staging --test-cert -d your-domain.com
